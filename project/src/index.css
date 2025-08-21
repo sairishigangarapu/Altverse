@@ -1,0 +1,89 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Press+Start+2P&family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --graphite: #0B0E0F;
+  --onyx: #111417;
+  --gunmetal: #161A1D;
+  --neon-mint: #33FFB4;
+  --teal-glow: #00E6C3;
+  --soft-white: #EAF7F3;
+}
+
+* {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--graphite);
+  overflow-x: hidden;
+}
+
+/* Triangulated clip-path utilities */
+.tri-cut {
+  clip-path: polygon(12px 0, calc(100% - 12px) 0, 100% 12px, 100% calc(100% - 12px),
+                     calc(100% - 12px) 100%, 12px 100%, 0 calc(100% - 12px), 0 12px);
+}
+
+.tri-cut-sm {
+  clip-path: polygon(8px 0, calc(100% - 8px) 0, 100% 8px, 100% calc(100% - 8px),
+                     calc(100% - 8px) 100%, 8px 100%, 0 calc(100% - 8px), 0 8px);
+}
+
+.tri-cut-lg {
+  clip-path: polygon(16px 0, calc(100% - 16px) 0, 100% 16px, 100% calc(100% - 16px),
+                     calc(100% - 16px) 100%, 16px 100%, 0 calc(100% - 16px), 0 16px);
+}
+
+/* Noise texture overlay */
+.noise-overlay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: 
+    radial-gradient(circle at 25% 25%, rgba(51, 255, 180, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 75% 75%, rgba(0, 230, 195, 0.03) 0%, transparent 50%);
+  background-size: 100px 100px, 150px 150px;
+  animation: noise 20s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes noise {
+  0%, 100% { transform: translate(0, 0); }
+  25% { transform: translate(-2px, 2px); }
+  50% { transform: translate(2px, -2px); }
+  75% { transform: translate(-1px, -1px); }
+}
+
+/* Glassmorphism */
+.glass {
+  backdrop-filter: blur(12px);
+  background: rgba(17, 20, 23, 0.8);
+}
+
+/* Neon glow effects */
+.neon-glow {
+  filter: drop-shadow(0 0 8px var(--neon-mint)) drop-shadow(0 0 16px var(--teal-glow));
+}
+
+.neon-border {
+  border: 1px solid rgba(51, 255, 180, 0.3);
+  box-shadow: 0 0 20px rgba(0, 230, 195, 0.1);
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .noise-overlay::before {
+    animation: none;
+  }
+  
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
