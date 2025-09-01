@@ -3,7 +3,7 @@ import { Users, Clock, Trophy } from 'lucide-react';
 
 const About = () => {
   return (
-    <section id="about" className="py-20 px-4 bg-gradient-to-b from-onyx to-gunmetal relative">
+    <section id="about" className="py-20 pt-24 px-4 bg-gradient-to-b from-onyx to-gunmetal relative">
       {/* Triangulated divider */}
       <div className="absolute top-0 left-0 w-full h-8 bg-gradient-to-r from-neon-mint/10 to-teal-glow/10" 
            style={{ clipPath: 'polygon(0 0, 100% 0, 95% 100%, 5% 100%)' }}></div>

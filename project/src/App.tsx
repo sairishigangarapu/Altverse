@@ -28,10 +28,12 @@ function App() {
   return (
     <div className="min-h-screen bg-graphite text-soft-white">
       <Header />
-      <Routes>
-        <Route path="/" element={<MainPage />} />
-        <Route path="/about" element={<About />} />
-      </Routes>
+      <div> {/* Removed padding completely */}
+        <Routes>
+          <Route path="/" element={<MainPage />} />
+          <Route path="/about" element={<About />} />
+        </Routes>
+      </div>
     </div>
   );
 }

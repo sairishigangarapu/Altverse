@@ -4,7 +4,7 @@ import CountdownTimer from './CountdownTimer';
 
 const Hero = () => {
   return (
-    <section id="home" className="relative min-h-screen flex items-center justify-center overflow-hidden noise-overlay">
+    <section id="home" className="relative min-h-screen flex items-center justify-center overflow-hidden noise-overlay pt-12 md:pt-16">
       {/* Background with overlay */}
       <div className="absolute inset-0 bg-gradient-to-br from-gunmetal via-onyx to-graphite">
         <div className="absolute inset-0 bg-[url('https://images.pexels.com/photos/442576/pexels-photo-442576.jpeg')] bg-cover bg-center opacity-20"></div>

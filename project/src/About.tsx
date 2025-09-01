@@ -2,7 +2,7 @@ import React from "react";
 
 const About: React.FC = () => {
   return (
-    <main className="min-h-screen bg-base-100 text-base-content flex flex-col items-center px-4 py-12">
+    <main className="min-h-screen bg-base-100 text-base-content flex flex-col items-center px-4 pt-20">
       <section className="max-w-3xl w-full mb-16 text-center">
         <h1 className="text-4xl font-bold mb-4">Our Story</h1>
         <p className="text-lg opacity-80">Altverse was born from a passion for innovation and community. Our journey began with a simple idea: to create a space where creativity and technology meet, empowering individuals to connect, learn, and grow together.</p>
