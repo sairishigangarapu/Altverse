@@ -42,18 +42,26 @@ const Header: React.FC = () => {
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
+      
+      // Force a re-render to update active section
+      // This is a bit hacky but works for updating the current section highlight
+      if (location.pathname === '/') {
+        const currentState = { ...window.history.state };
+        window.history.replaceState(currentState, '', window.location.href);
+      }
     };
+    
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [location.pathname]);
 
   // Updated navItems structure to match the project components
-  const navItems = [
-    { name: 'Home', path: '/' },
+  const navItems = React.useMemo(() => [
+    { name: 'Home', path: '/', sectionId: 'home' },
     { name: 'About', path: '/about' },
-    { name: 'Rules', path: '/rules' },
-    { name: 'Register', path: '/register' },
-    { name: 'Proposal', path: '/proposal' },
+    { name: 'Rules', path: '/', sectionId: 'rules' },
+    { name: 'Register', path: '/', sectionId: 'register' },
+    { name: 'Proposal', path: '/', sectionId: 'proposal' },
     { 
       name: 'Events', 
       path: '/events', 
@@ -62,24 +70,137 @@ const Header: React.FC = () => {
         { name: 'Schedule', path: '/schedule', hoverBg: 'hover:bg-blue-50' },
       ] 
     },
-    { name: 'Contact', path: '/contact' },
-  ];
+    { name: 'Contact', path: '/', sectionId: 'contact' },
+  ], []);
 
-  const handleNavClick = (path: string) => {
-    navigate(path);
-    setIsMenuOpen(false);
-    setOpenDropdown(null);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      // Calculate offset to account for header height
+      const headerHeight = document.querySelector('header')?.clientHeight || 0;
+      // Add a small buffer for visual comfort
+      const buffer = 20;
+      const elementPosition = element.getBoundingClientRect().top + window.scrollY;
+      window.scrollTo({ 
+        top: elementPosition - headerHeight - buffer, 
+        behavior: 'smooth' 
+      });
+      // Update active section immediately for better UX
+      setActiveSection(sectionId);
+    }
   };
 
-  const isCurrentPage = (path: string | undefined) => {
-    if (!path) return false;
-    // Check if the current page is the main path or one of its sub-items
-    const mainItem = navItems.find(item => item.path === location.pathname || item.subItems?.some(sub => sub.path === location.pathname));
-    if (mainItem?.subItems) {
-        return mainItem.path === path || mainItem.subItems.some(sub => sub.path === path);
+  const handleNavClick = (path: string, sectionId?: string) => {
+    setIsMenuOpen(false);
+    setOpenDropdown(null);
+
+    if (path === '/about') {
+      // For About page, navigate to the separate route
+      navigate(path);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else if (sectionId) {
+      // For sections on the main page, scroll to the section
+      if (location.pathname !== '/') {
+        // If we're not on the home page, navigate there first then scroll
+        navigate('/');
+        // Need to wait for navigation to complete before scrolling
+        setTimeout(() => {
+          scrollToSection(sectionId);
+        }, 100);
+      } else {
+        // Already on home page, just scroll to section
+        scrollToSection(sectionId);
+      }
+    } else {
+      // Default behavior for other links
+      navigate(path);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-    return location.pathname === path;
+  };
+
+  // Track the active section ID based on scroll position
+  const [activeSection, setActiveSection] = useState<string | null>('home');
+  
+  // Update active section on scroll
+  useEffect(() => {
+    const handleScrollForActiveSection = () => {
+      // Only track sections on home page
+      if (location.pathname !== '/') {
+        return;
+      }
+      
+      // Get all section IDs from navItems
+      const sectionIds = navItems
+        .filter(item => item.sectionId)
+        .map(item => item.sectionId as string);
+      
+      // Find which section is currently most visible
+      let mostVisibleSection = null;
+      let maxVisibility = 0;
+      
+      sectionIds.forEach(id => {
+        const element = document.getElementById(id);
+        if (!element) return;
+        
+        const rect = element.getBoundingClientRect();
+        const headerHeight = document.querySelector('header')?.clientHeight || 0;
+        const windowHeight = window.innerHeight;
+        
+        // Calculate how much of the section is visible in the viewport
+        const visibleTop = Math.max(rect.top, headerHeight);
+        const visibleBottom = Math.min(rect.bottom, windowHeight);
+        const visibleHeight = Math.max(0, visibleBottom - visibleTop);
+        
+        // Special case for home section at the top
+        if (id === 'home' && window.scrollY < 200) {
+          setActiveSection('home');
+          return;
+        }
+        
+        // Track the most visible section
+        if (visibleHeight > maxVisibility) {
+          maxVisibility = visibleHeight;
+          mostVisibleSection = id;
+        }
+      });
+      
+      // Update active section if we found one
+      if (mostVisibleSection) {
+        setActiveSection(mostVisibleSection);
+      }
+    };
+    
+    window.addEventListener('scroll', handleScrollForActiveSection);
+    // Run once on mount to set initial active section
+    handleScrollForActiveSection();
+    
+    return () => window.removeEventListener('scroll', handleScrollForActiveSection);
+  }, [location.pathname, navItems]);
+  
+  const isCurrentPage = (path: string | undefined, sectionId?: string) => {
+    if (!path) return false;
+    
+    // For the main page sections
+    if (location.pathname === '/' && path === '/' && sectionId) {
+      return sectionId === activeSection;
+    }
+    
+    // For About page and other non-section links
+    if (path === '/about' && location.pathname === '/about') {
+      return true;
+    }
+    
+    // For Events subItems (if they exist)
+    const mainItem = navItems.find(item => 
+      item.subItems?.some(sub => sub.path === location.pathname)
+    );
+    
+    if (mainItem?.subItems) {
+      return mainItem.path === path || mainItem.subItems.some(sub => sub.path === location.pathname);
+    }
+    
+    // Default case
+    return false;
   };
   
 
@@ -132,9 +253,9 @@ const Header: React.FC = () => {
                   onMouseLeave={handleMouseLeave}
                 >
                   <motion.button
-                    onClick={() => item.path && handleNavClick(item.path)}
+                    onClick={() => item.path && handleNavClick(item.path, item.sectionId)}
                     className={`transition-colors relative px-4 py-2 font-medium font-inter ${
-                        isCurrentPage(item.path) 
+                        isCurrentPage(item.path, item.sectionId) 
                           ? 'text-neon-mint font-bold'
                           : 'text-soft-white/80 hover:text-neon-mint'
                       }`}
@@ -181,9 +302,9 @@ const Header: React.FC = () => {
               ) : (
                 <motion.button
                   key={item.path}
-                  onClick={() => handleNavClick(item.path!)}
+                  onClick={() => handleNavClick(item.path!, item.sectionId)}
                   className={`transition-colors relative px-4 py-2 font-medium font-inter ${
-                    isCurrentPage(item.path) 
+                    isCurrentPage(item.path, item.sectionId) 
                       ? 'text-neon-mint font-bold'
                       : 'text-soft-white/80 hover:text-neon-mint'
                   }`}
@@ -236,9 +357,9 @@ const Header: React.FC = () => {
               {navItems.map((item) => (
                 <React.Fragment key={item.name}>
                   <motion.button
-                    onClick={() => item.path && handleNavClick(item.path)}
+                    onClick={() => item.path && handleNavClick(item.path, item.sectionId)}
                     className={`block w-full text-left py-3 px-4 transition-colors text-lg font-inter ${
-                      isCurrentPage(item.path) 
+                      isCurrentPage(item.path, item.sectionId) 
                         ? 'text-neon-mint font-semibold'
                         : 'text-soft-white/80 hover:text-neon-mint'
                     }`}
